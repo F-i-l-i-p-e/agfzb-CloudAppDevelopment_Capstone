@@ -1,0 +1,21 @@
+const Cloudant = require('cloudant');
+
+async function main(params) {
+    const cloudant = Cloudant({
+        url: params.url, 
+        plugins: { iamauth: { iamApiKey: params.apikey } }
+    });
+
+    const db = cloudant.db.use('dealerships');
+
+    try {
+        const result = await db.list({include_docs: true});
+        return { "dealerships": result.rows.map(row => row.doc) };
+    } catch (error) {
+        if (error.statusCode === 404) {
+            return { error: "The database is empty" };
+        } else {
+            return { error: "Something went wrong on the server" };
+        }
+    }
+}
